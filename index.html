@@ -280,6 +280,84 @@
   .no-crypto{
     text-align:center; padding:40px; color:var(--danger); font-size:14px; line-height:1.6;
   }
+
+  /* ---------- EDIT / TAMBAH / HAPUS ---------- */
+  .topbar-actions{ display:flex; gap:8px; }
+  .lock-btn{ position:relative; }
+  .sync-dot{
+    position:absolute; top:7px; right:7px; width:8px; height:8px; border-radius:50%;
+    background:var(--gold); display:none; box-shadow:0 0 0 2px var(--bg-elev);
+  }
+  .sync-dot.show{ display:block; }
+  #list{ padding:6px 16px 110px; }
+  .item-actions{ display:flex; gap:8px; margin-top:14px; }
+  .btn-sm{
+    background:var(--bg-elev); border:1px solid var(--line); color:var(--ink-dim);
+    padding:8px 14px; border-radius:9px; font-size:13px; font-weight:600;
+    cursor:pointer; font-family:var(--sans); display:inline-flex; align-items:center; gap:6px;
+  }
+  .btn-sm svg{ width:14px; height:14px; }
+  .btn-sm:active{ background:var(--bg-elev-2); }
+  .btn-sm.danger{ color:var(--danger); border-color:rgba(224,99,122,.35); }
+  .fab{
+    position:fixed; bottom:24px; right:max(18px, calc(50vw - 230px + 18px));
+    height:54px; padding:0 20px 0 16px; border-radius:27px; border:none; cursor:pointer;
+    background:linear-gradient(155deg, var(--gold), #B5852F); color:#1A1204;
+    font-size:14.5px; font-weight:700; font-family:var(--sans);
+    display:flex; align-items:center; gap:8px; z-index:20;
+    box-shadow:0 10px 26px -6px rgba(217,164,65,.55);
+  }
+  .fab svg{ width:20px; height:20px; }
+  .fab:active{ transform:scale(.97); }
+  .modal{
+    position:fixed; inset:0; z-index:40; background:rgba(5,9,18,.72);
+    display:none; align-items:flex-end; justify-content:center;
+  }
+  .modal.show{ display:flex; }
+  .sheet{
+    width:100%; max-width:460px; max-height:92vh; overflow-y:auto;
+    background:var(--bg); border:1px solid var(--line); border-bottom:none;
+    border-radius:20px 20px 0 0; padding:18px 18px 26px;
+    animation:sheetUp .22s ease;
+  }
+  @keyframes sheetUp{ from{ transform:translateY(40px); opacity:0 } to{ transform:none; opacity:1 } }
+  .sheet-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .sheet-head h3{ margin:0; font-size:18px; font-weight:700; letter-spacing:-0.01em; }
+  .sheet .field{ margin-bottom:14px; }
+  .sheet .field input, .sheet .field select{
+    width:100%; background:var(--bg-elev); border:1px solid var(--line); color:var(--ink);
+    padding:12px 13px; border-radius:11px; font-size:15px; font-family:var(--sans); outline:none;
+  }
+  .sheet .field input:focus, .sheet .field select:focus{ border-color:var(--gold-dim); }
+  .f-row{
+    display:flex; gap:6px; align-items:flex-start; background:var(--bg-elev);
+    border:1px solid var(--line); border-radius:12px; padding:8px; margin-bottom:8px;
+  }
+  .f-pair{ flex:1; display:flex; flex-direction:column; gap:6px; min-width:0; }
+  .f-row input{
+    width:100%; background:var(--bg); border:1px solid var(--line); color:var(--ink);
+    padding:10px 11px; border-radius:9px; font-size:14px; outline:none; font-family:var(--sans);
+  }
+  .f-row input.f-value{ font-family:var(--mono); font-size:13.5px; }
+  .f-row input:focus{ border-color:var(--gold-dim); }
+  .f-row .icon-btn{ padding:9px 6px; }
+  .f-row .icon-btn.del{ color:var(--danger); }
+  .f-row .icon-btn svg{ width:17px; height:17px; }
+  .field-title{ font-size:12.5px; color:var(--ink-faint); font-weight:600; margin:18px 0 8px; display:flex; justify-content:space-between; align-items:center; }
+  .sheet-actions{ display:flex; gap:10px; margin-top:18px; }
+  .sheet-actions .btn-primary{ margin-top:0; }
+  .btn-ghost{
+    flex:0 0 auto; background:var(--bg-elev); border:1px solid var(--line); color:var(--ink-dim);
+    padding:15px 20px; border-radius:12px; font-size:15px; font-weight:600; cursor:pointer; font-family:var(--sans);
+  }
+  .btn-danger{
+    width:100%; background:var(--danger); color:#2A0A12; border:none; padding:15px;
+    border-radius:12px; font-size:15.5px; font-weight:700; cursor:pointer; font-family:var(--sans);
+  }
+  .sheet p{ color:var(--ink-dim); font-size:14px; line-height:1.6; margin:0 0 14px; }
+  .sheet p b{ color:var(--ink); }
+  .sheet .stack{ display:flex; flex-direction:column; gap:10px; margin-top:6px; }
+  .sheet .stack .btn-primary{ margin-top:0; }
 </style>
 </head>
 <body>
@@ -328,9 +406,12 @@
           <h2 id="company-name">PT. Prakarsa Mitra Andalan</h2>
           <div class="who">Account &amp; Password Vault</div>
         </div>
-        <button class="lock-btn" id="lock-again" aria-label="Kunci">
+        <div class="topbar-actions">
+          <button class="lock-btn" id="sync-btn" aria-label="Simpan ke server"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span class="sync-dot" id="sync-dot"></span></button>
+          <button class="lock-btn" id="lock-again" aria-label="Kunci">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
         </button>
+        </div>
       </div>
       <div class="company-switch">
         <button id="btn-pma" class="active" data-c="PMA">PMA<span class="full">Prakarsa Mitra Andalan</span></button>
@@ -344,6 +425,14 @@
       <div id="count"></div>
     </div>
     <div id="list"></div>
+    <button class="fab" id="fab-add" aria-label="Tambah entri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Tambah</button>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="sheet" id="sheet" role="dialog" aria-modal="true">
+      <div class="sheet-head"><h3 id="sheet-title"></h3><button class="icon-btn" id="sheet-close" aria-label="Tutup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+      <div id="sheet-body"></div>
+    </div>
   </div>
 
   <div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span id="toast-text">Disalin</span></div>
@@ -366,6 +455,7 @@ const ENC = {
 };
 
 let DATA = null;
+let KEY = null, KEY_ENC = null;
 let currentCompany = "PMA";
 
 const lockEl = document.getElementById('lock');
@@ -389,17 +479,18 @@ function b64ToBytes(b64){
   return bytes;
 }
 
-async function deriveKey(username, password){
+async function deriveKey(username, password, enc0){
+  enc0 = enc0 || ENC;
   const enc = new TextEncoder();
   const passphrase = enc.encode(username.trim() + ":" + password);
   const baseKey = await crypto.subtle.importKey('raw', passphrase, 'PBKDF2', false, ['deriveKey']);
-  const salt = b64ToBytes(ENC.salt);
+  const salt = b64ToBytes(enc0.salt);
   return crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt, iterations: ENC.iterations, hash: 'SHA-256' },
+    { name: 'PBKDF2', salt, iterations: enc0.iterations, hash: 'SHA-256' },
     baseKey,
     { name: 'AES-GCM', length: 256 },
     false,
-    ['decrypt']
+    ['encrypt', 'decrypt']
   );
 }
 
@@ -420,12 +511,24 @@ async function tryUnlock(){
   await new Promise(r => setTimeout(r, 20));
 
   try{
-    const key = await deriveKey(u, p);
-    const iv = b64ToBytes(ENC.iv);
-    const ciphertext = b64ToBytes(ENC.ciphertext);
-    const plainBuf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
-    const plainText = new TextDecoder().decode(plainBuf);
-    DATA = JSON.parse(plainText);
+    // pakai data hasil edit di perangkat ini kalau lebih baru dari yang tertanam di file
+    const cands = [];
+    const ov = getOverride();
+    if(ov && ov.ver > (ENC.ver || 0)) cands.push(ov);
+    else if(ov) clearOverride();
+    cands.push(ENC);
+    let ok = false, lastErr = null;
+    for(const c of cands){
+      try{
+        const key = await deriveKey(u, p, c);
+        const buf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64ToBytes(c.iv) }, key, b64ToBytes(c.ciphertext));
+        DATA = JSON.parse(new TextDecoder().decode(buf));
+        KEY = key; KEY_ENC = c; ok = true;
+        break;
+      }catch(e){ lastErr = e; }
+    }
+    if(!ok) throw lastErr || new Error('decrypt failed');
+    updateSyncDot();
 
     lockEl.style.display = 'none';
     mainEl.classList.add('show');
@@ -451,7 +554,8 @@ unameEl.addEventListener('keydown', e => { if(e.key === 'Enter') pwordEl.focus()
 
 document.getElementById('lock-again').addEventListener('click', () => {
   // wipe decrypted data from memory on re-lock
-  DATA = null;
+  DATA = null; KEY = null; KEY_ENC = null;
+  closeSheet();
   mainEl.classList.remove('show');
   lockEl.style.display = 'flex';
   unameEl.value = '';
@@ -484,7 +588,7 @@ function isSecretLabel(label){
   return /password|pass|pwd|pin|kode/i.test(label);
 }
 
-function renderItem(it, sectionKey, idx){
+function renderItem(it, sectionKey, idx, sIdx){
   const fieldsHtml = it.fields.map((f, fi) => {
     const secret = isSecretLabel(f.label);
     const fid = sectionKey + '-' + idx + '-' + fi;
@@ -506,7 +610,7 @@ function renderItem(it, sectionKey, idx){
         <div class="item-title">${escapeHtml(it.title)}</div>
         <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
-      <div class="item-body">${fieldsHtml}</div>
+      <div class="item-body">${fieldsHtml}<div class="item-actions"><button class="btn-sm" onclick="openForm(${sIdx},${idx})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</button><button class="btn-sm danger" onclick="askDelete(${sIdx},${idx})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>Hapus</button></div></div>
     </div>`;
 }
 
@@ -519,7 +623,7 @@ function renderList(){
   let html = '';
 
   sections.forEach((sec, sIdx) => {
-    const filtered = sec.items.filter(it => {
+    const filtered = sec.items.map((it, i) => ({it, i})).filter(({it}) => {
       if(!q) return true;
       const hay = (it.title + ' ' + it.fields.map(f => f.label + ' ' + f.value).join(' ')).toLowerCase();
       return hay.includes(q);
@@ -528,7 +632,7 @@ function renderList(){
     totalCount += filtered.length;
     const sectionKey = currentCompany + '-s' + sIdx;
     html += `<div class="section-head">${escapeHtml(sec.section)} <span class="section-count">${filtered.length}</span></div>`;
-    html += filtered.map((it, idx) => renderItem(it, sectionKey, idx)).join('');
+    html += filtered.map(({it, i}) => renderItem(it, sectionKey, i, sIdx)).join('');
   });
 
   document.getElementById('count').textContent = totalCount + ' entri' + (q ? ' ditemukan' : '');
@@ -578,6 +682,292 @@ function showToast(msg){
   t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+
+/* ====== EDIT / TAMBAH / HAPUS + SIMPAN TERENKRIPSI ====== */
+const LS_KEY = 'vault_enc_override_v1';
+const SVG_EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+const SVG_DEL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+
+function bytesToB64(bytes){
+  let s = '';
+  for(let i = 0; i < bytes.length; i += 0x8000){
+    s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  }
+  return btoa(s);
+}
+function getOverride(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+function clearOverride(){ try{ localStorage.removeItem(LS_KEY); }catch(e){} }
+function hasPending(){
+  const ov = getOverride();
+  return !!ov && ov.ver > (ENC.ver || 0);
+}
+function updateSyncDot(){
+  document.getElementById('sync-dot').classList.toggle('show', hasPending());
+}
+
+// Enkripsi ulang seluruh data dengan kunci sesi (IV baru setiap kali) lalu simpan di perangkat ini.
+async function persist(){
+  if(!KEY || !KEY_ENC) throw new Error('no key');
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const plain = new TextEncoder().encode(JSON.stringify(DATA));
+  const buf = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, KEY, plain);
+  const rec = {
+    salt: KEY_ENC.salt,
+    iv: bytesToB64(iv),
+    iterations: KEY_ENC.iterations,
+    ver: Date.now(),
+    ciphertext: bytesToB64(new Uint8Array(buf))
+  };
+  localStorage.setItem(LS_KEY, JSON.stringify(rec));
+  updateSyncDot();
+}
+
+function h(tag, props){
+  const e = document.createElement(tag);
+  if(props) for(const k in props){
+    if(k === 'class') e.className = props[k];
+    else if(k === 'text') e.textContent = props[k];
+    else e.setAttribute(k, props[k]);
+  }
+  for(let i = 2; i < arguments.length; i++){
+    const kid = arguments[i];
+    if(kid) e.append(kid);
+  }
+  return e;
+}
+
+/* ---- bottom sheet ---- */
+const modalEl = document.getElementById('modal');
+function openSheet(title, node){
+  document.getElementById('sheet-title').textContent = title;
+  const body = document.getElementById('sheet-body');
+  body.innerHTML = '';
+  body.append(node);
+  modalEl.classList.add('show');
+  document.getElementById('sheet').scrollTop = 0;
+}
+function closeSheet(){ modalEl.classList.remove('show'); }
+document.getElementById('sheet-close').addEventListener('click', closeSheet);
+modalEl.addEventListener('click', e => { if(e.target === modalEl) closeSheet(); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeSheet(); });
+
+function nextNum(sec){
+  let max = 0;
+  sec.items.forEach(it => { const n = parseInt(it.num, 10); if(!isNaN(n) && n > max) max = n; });
+  return String(Math.max(max, sec.items.length) + 1);
+}
+
+/* ---- form tambah / edit ---- */
+document.getElementById('fab-add').addEventListener('click', () => openForm(null, null));
+
+function openForm(sIdx, idx){
+  const isEdit = sIdx !== null && sIdx !== undefined;
+  if(!DATA[currentCompany]) DATA[currentCompany] = [];
+  const secs = DATA[currentCompany];
+  const src = isEdit
+    ? secs[sIdx].items[idx]
+    : { title: '', fields: [{ label: 'Username', value: '' }, { label: 'Password', value: '' }] };
+
+  const titleIn = h('input', { type: 'text', placeholder: 'cth: Router Kantor / Email Admin', autocomplete: 'off' });
+  titleIn.value = src.title;
+
+  const secSel = h('select');
+  secs.forEach((s, i) => secSel.append(h('option', { value: String(i), text: s.section })));
+  secSel.append(h('option', { value: 'new', text: '+ Bagian baru…' }));
+  secSel.value = isEdit ? String(sIdx) : (secs.length ? String(secs.length - 1) : 'new');
+
+  const newSecIn = h('input', { type: 'text', placeholder: 'Nama bagian baru', autocomplete: 'off' });
+  const newSecField = h('div', { class: 'field' }, h('label', { text: 'Nama bagian baru' }), newSecIn);
+  const syncNewSec = () => { newSecField.style.display = secSel.value === 'new' ? 'block' : 'none'; };
+  secSel.addEventListener('change', syncNewSec);
+  syncNewSec();
+
+  const fieldsBox = h('div');
+  function addRow(label, value){
+    const l = h('input', { type: 'text', placeholder: 'Label (cth: Password)', autocomplete: 'off', class: 'f-label' });
+    l.value = label || '';
+    const v = h('input', { type: isSecretLabel(label || '') ? 'password' : 'text', placeholder: 'Isi', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', class: 'f-value' });
+    v.value = value || '';
+    l.addEventListener('input', () => { if(!v.dataset.manual) v.type = isSecretLabel(l.value) ? 'password' : 'text'; });
+    const eye = h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Tampilkan atau sembunyikan isi' });
+    eye.innerHTML = SVG_EYE;
+    eye.addEventListener('click', () => { v.dataset.manual = '1'; v.type = v.type === 'password' ? 'text' : 'password'; });
+    const del = h('button', { type: 'button', class: 'icon-btn del', 'aria-label': 'Hapus field' });
+    del.innerHTML = SVG_DEL;
+    const row = h('div', { class: 'f-row' }, h('div', { class: 'f-pair' }, l, v), eye, del);
+    del.addEventListener('click', () => row.remove());
+    fieldsBox.append(row);
+  }
+  src.fields.forEach(f => addRow(f.label, f.value));
+
+  const addFieldBtn = h('button', { type: 'button', class: 'btn-sm', text: '+ Tambah field' });
+  addFieldBtn.addEventListener('click', () => addRow('', ''));
+
+  const saveBtn = h('button', { type: 'button', class: 'btn-primary' }, h('span', { text: 'Simpan' }));
+  const cancelBtn = h('button', { type: 'button', class: 'btn-ghost', text: 'Batal' });
+  cancelBtn.addEventListener('click', closeSheet);
+
+  saveBtn.addEventListener('click', async () => {
+    const title = titleIn.value.trim();
+    if(!title){ showToast('Judul wajib diisi'); titleIn.focus(); return; }
+
+    const fields = [];
+    for(const row of fieldsBox.querySelectorAll('.f-row')){
+      const label = row.querySelector('.f-label').value.trim();
+      const value = row.querySelector('.f-value').value;
+      if(!label && !value) continue;
+      if(!label){ showToast('Ada field yang labelnya kosong'); return; }
+      fields.push({ label, value });
+    }
+    if(fields.length === 0){ showToast('Isi minimal satu field'); return; }
+
+    let newSecName = '';
+    if(secSel.value === 'new'){
+      newSecName = newSecIn.value.trim();
+      if(!newSecName){ showToast('Nama bagian baru wajib diisi'); newSecIn.focus(); return; }
+    }
+
+    const snapshot = JSON.stringify(DATA);
+    let targetIdx, targetItemIdx;
+    try{
+      let target;
+      if(secSel.value === 'new'){
+        let found = secs.findIndex(s => s.section.trim().toLowerCase() === newSecName.toLowerCase());
+        if(found === -1){ secs.push({ section: newSecName, items: [] }); found = secs.length - 1; }
+        targetIdx = found;
+      }else{
+        targetIdx = parseInt(secSel.value, 10);
+      }
+      target = secs[targetIdx];
+
+      if(isEdit && targetIdx === sIdx){
+        const it = target.items[idx];
+        it.title = title; it.fields = fields;
+        targetItemIdx = idx;
+      }else{
+        if(isEdit) secs[sIdx].items.splice(idx, 1);
+        target.items.push({ num: nextNum(target), title, fields });
+        targetItemIdx = target.items.length - 1;
+      }
+
+      saveBtn.disabled = true;
+      await persist();
+    }catch(e){
+      DATA = JSON.parse(snapshot);
+      saveBtn.disabled = false;
+      showToast('Gagal menyimpan. Coba lagi.');
+      return;
+    }
+    closeSheet();
+    document.getElementById('search').value = '';
+    renderList();
+    const el = document.getElementById('item-' + currentCompany + '-s' + targetIdx + '-' + targetItemIdx);
+    if(el){ el.classList.add('open'); el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+    showToast(isEdit ? 'Perubahan disimpan' : 'Entri ditambahkan');
+  });
+
+  const node = h('div', null,
+    h('div', { class: 'field' }, h('label', { text: 'Judul' }), titleIn),
+    h('div', { class: 'field' }, h('label', { text: 'Bagian' }), secSel),
+    newSecField,
+    h('div', { class: 'field-title' }, h('span', { text: 'Isi data' }), addFieldBtn),
+    fieldsBox,
+    h('div', { class: 'sheet-actions' }, cancelBtn, saveBtn)
+  );
+  openSheet(isEdit ? 'Edit entri' : 'Tambah entri', node);
+  if(!isEdit) titleIn.focus();
+}
+
+/* ---- hapus ---- */
+function askDelete(sIdx, idx){
+  const it = DATA[currentCompany][sIdx].items[idx];
+  const delBtn = h('button', { type: 'button', class: 'btn-danger', text: 'Hapus' });
+  const cancelBtn = h('button', { type: 'button', class: 'btn-ghost', text: 'Batal' });
+  cancelBtn.addEventListener('click', closeSheet);
+  delBtn.addEventListener('click', async () => {
+    const snapshot = JSON.stringify(DATA);
+    try{
+      DATA[currentCompany][sIdx].items.splice(idx, 1);
+      delBtn.disabled = true;
+      await persist();
+    }catch(e){
+      DATA = JSON.parse(snapshot);
+      delBtn.disabled = false;
+      showToast('Gagal menghapus. Coba lagi.');
+      return;
+    }
+    closeSheet();
+    renderList();
+    showToast('Entri dihapus');
+  });
+  const msg = h('p', null);
+  msg.append('Hapus ', h('b', { text: it.title }), '? Entri ini hilang dari vault di perangkat ini dan tidak bisa dikembalikan.');
+  openSheet('Hapus entri', h('div', null, msg, h('div', { class: 'sheet-actions' }, cancelBtn, delBtn)));
+}
+
+/* ---- simpan ke server: unduh index.html baru untuk di-deploy ---- */
+document.getElementById('sync-btn').addEventListener('click', openSync);
+
+function openSync(){
+  const pending = hasPending();
+  const msg = h('p', null);
+  if(pending){
+    msg.append('Ada perubahan yang baru tersimpan di perangkat ini. Agar muncul di perangkat lain, unduh ', h('b', { text: 'index.html' }), ' terbaru lalu deploy ke GitHub / Firebase.');
+  }else{
+    msg.append('Belum ada perubahan yang perlu di-deploy.');
+  }
+  const dl = h('button', { type: 'button', class: 'btn-primary' }, h('span', { text: 'Unduh index.html terbaru' }));
+  dl.disabled = !pending;
+  dl.addEventListener('click', exportHtml);
+  const reset = h('button', { type: 'button', class: 'btn-ghost', text: 'Buang perubahan di perangkat ini' });
+  reset.style.display = pending ? 'block' : 'none';
+  reset.addEventListener('click', () => {
+    if(confirm('Buang semua perubahan yang belum di-deploy? Vault akan dikunci dan kembali ke versi di file.')){
+      clearOverride();
+      location.reload();
+    }
+  });
+  const note = h('p', null);
+  note.style.fontSize = '12.5px';
+  note.textContent = 'Data tetap terenkripsi AES-256-GCM dengan username dan password yang sama. Isi file yang diunduh hanya ciphertext.';
+  openSheet('Simpan ke server', h('div', null, msg, h('div', { class: 'stack' }, dl, reset), h('div', { style: 'height:14px' }), note));
+}
+
+async function exportHtml(){
+  const rec = getOverride();
+  if(!rec){ showToast('Belum ada perubahan'); return; }
+  try{
+    const res = await fetch('index.html', { cache: 'no-store' });
+    if(!res.ok) throw new Error('fetch ' + res.status);
+    let text = await res.text();
+    const re = /const ENC = \{[\s\S]*?\n\};/;
+    if(!re.test(text)) throw new Error('blok ENC tidak ditemukan');
+    const block = 'const ENC = {\n' +
+      '  salt: "' + rec.salt + '",\n' +
+      '  iv: "' + rec.iv + '",\n' +
+      '  iterations: ' + rec.iterations + ',\n' +
+      '  ver: ' + rec.ver + ',\n' +
+      '  ciphertext: "' + rec.ciphertext + '"\n};';
+    text = text.replace(re, () => block);
+    const blob = new Blob([text], { type: 'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'index.html';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    showToast('index.html terbaru diunduh');
+  }catch(e){
+    showToast('Gagal membuat file. Buka lewat https:// lalu coba lagi.');
+  }
 }
 
 if('serviceWorker' in navigator){

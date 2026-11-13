@@ -1,17 +1,17 @@
 /*
   Service worker sederhana untuk Vault PWA.
-  Tujuannya cuma dua:
-  1. Bikin browser mengenali halaman ini sebagai "installable" (syarat Chrome
-     untuk memunculkan tombol "Install app" / "Add to Home screen" dengan benar).
-  2. Cache file statis (HTML, manifest, ikon) supaya app tetap bisa dibuka
-     walau HP sedang offline / tidak ada internet.
+  Tujuannya:
+  1. Bikin browser mengenali halaman ini sebagai "installable".
+  2. Cache file statis supaya app tetap bisa dibuka saat offline.
+  3. File HTML & manifest memakai strategi network-first, jadi setelah
+     index.html di-deploy ulang (mis. setelah tambah/edit data), perangkat
+     langsung mendapat versi terbaru selama ada internet.
 
-  PENTING: Service worker ini TIDAK menyimpan atau menyentuh data vault sama
-  sekali. Data vault selalu didekripsi di memori browser saat itu juga
-  (lihat index.html) dan tidak pernah lewat sini.
+  PENTING: Service worker ini TIDAK menyimpan atau menyentuh data vault.
+  Data vault didekripsi di memori browser (lihat index.html).
 */
 
-const CACHE_NAME = 'vault-cache-v1';
+const CACHE_NAME = 'vault-cache-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -38,9 +38,34 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Cache-first strategy: pakai versi cache dulu kalau ada, kalau tidak baru ambil dari network.
+function isAppShell(request) {
+  const url = new URL(request.url);
+  return (
+    request.mode === 'navigate' ||
+    url.pathname.endsWith('/') ||
+    url.pathname.endsWith('.html') ||
+    url.pathname.endsWith('manifest.json')
+  );
+}
+
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
+  // Network-first untuk HTML & manifest: selalu coba versi terbaru, cache sebagai cadangan offline.
+  if (isAppShell(event.request)) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          return response;
+        })
+        .catch(() => caches.match(event.request).then((c) => c || caches.match('./index.html')))
+    );
+    return;
+  }
+
+  // Cache-first untuk ikon dan aset statis lain.
   event.respondWith(
     caches.match(event.request).then((cached) => {
       return (
